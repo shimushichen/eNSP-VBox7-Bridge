@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<assembly manifestVersion="1.0" xmlns="urn:schemas-microsoft-com:asm.v1">
+  <!-- DPI mode is configured by ApplicationHighDpiMode in Installer.csproj. -->
+</assembly>

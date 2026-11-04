@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <UseWindowsForms>true</UseWindowsForms>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AssemblyName>eNSP-VBox7-Bridge-Installer</AssemblyName>
+    <RootNamespace>eNSPBridgeInstaller</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.4314.35" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\scripts\Install.ps1" LogicalName="payload.Install.ps1" />
+    <EmbeddedResource Include="..\scripts\Uninstall.ps1" LogicalName="payload.Uninstall.ps1" />
+    <EmbeddedResource Include="..\scripts\Check.ps1" LogicalName="payload.Check.ps1" />
+    <EmbeddedResource Include="..\scripts\RegisterVM.ps1" LogicalName="payload.RegisterVM.ps1" />
+    <EmbeddedResource Include="..\scripts\Use-HCL.ps1" LogicalName="payload.Use-HCL.ps1" />
+    <EmbeddedResource Include="..\scripts\Set-VBoxComMode.ps1" LogicalName="payload.Set-VBoxComMode.ps1" />
+    <EmbeddedResource Include="..\scripts\HCLStatus.ps1" LogicalName="payload.HCLStatus.ps1" />
+    <EmbeddedResource Include="..\scripts\hcl-vbox72-shim.py" LogicalName="payload.hcl-vbox72-shim.py" />
+    <EmbeddedResource Include="..\vendor\VBox52.dll" LogicalName="payload.VBox52.dll" />
+    <EmbeddedResource Include="ui\index.html" LogicalName="payload.index.html" />
+    <EmbeddedResource Include="ui\styles.css" LogicalName="payload.styles.css" />
+    <EmbeddedResource Include="ui\app.js" LogicalName="payload.app.js" />
+  </ItemGroup>
+  <Target Name="RemoveUnusedWebView2Wpf" BeforeTargets="ResolveAssemblyReferences">
+    <ItemGroup>
+      <WebView2WpfReference Include="@(Reference)" Condition="$([System.String]::Copy('%(Reference.Identity)').EndsWith('Microsoft.Web.WebView2.Wpf.dll'))" />
+      <Reference Remove="@(WebView2WpfReference)" />
+    </ItemGroup>
+  </Target>
+</Project>

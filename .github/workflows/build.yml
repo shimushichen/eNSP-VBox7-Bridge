@@ -1,0 +1,49 @@
+name: build
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        shell: pwsh
+        run: dotnet restore .\src\Installer.csproj
+
+      - name: Build single-file installer
+        shell: pwsh
+        run: .\scripts\Build-Installer.ps1
+
+      - name: UI syntax check
+        shell: pwsh
+        run: node --check .\src\ui\app.js
+
+      - name: Translation regression test
+        shell: pwsh
+        run: node .\tests\verify_translations.js
+
+      - name: Python tests
+        shell: pwsh
+        run: python -m unittest discover -s tests
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: eNSP-VBox7-Bridge-Installer
+          path: |
+            dist/eNSP-VBox7-Bridge-Installer.exe
+            dist/SHA256SUMS.txt
+            dist/manifest.json

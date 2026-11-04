@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>eNSP Bridge · 虚拟化工作台</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <svg class="svg-defs" aria-hidden="true">
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Z"/><path d="m4.3 7.7 7.7 4.4 7.7-4.4M12 12v9"/></symbol>
+    <symbol id="i-switch" viewBox="0 0 24 24"><path d="M7 7h12l-3-3m3 3-3 3M17 17H5l3 3m-3-3 3-3"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V21h-4v-.08A1.7 1.7 0 0 0 8.94 19.4a1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.57 15 1.7 1.7 0 0 0 3 14H3v-4h.08A1.7 1.7 0 0 0 4.6 8.94a1.7 1.7 0 0 0-.34-1.88L4.2 7l2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.57 1.7 1.7 0 0 0 10 3V3h4v.08a1.7 1.7 0 0 0 1.06 1.52 1.7 1.7 0 0 0 1.88-.34L17 4.2 19.8 7l-.06.06a1.7 1.7 0 0 0-.34 1.88A1.7 1.7 0 0 0 21 10h.08v4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 6v5h-5M4 18v-5h5"/><path d="M18.2 9A7 7 0 0 0 6.1 6.1L4 11m16 2-2.1 4.9A7 7 0 0 1 5.8 15"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6l8-3Z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 14H7L6 7m4 4v6m4-6v6"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3V6Z"/></symbol>
+    <symbol id="i-terminal" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="m7 9 3 3-3 3m6 0h4"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V4H4v12h4"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m7 10 5 5 5-5"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6m0-10h.01"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+  </svg>
+
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark"><span></span><span></span></div>
+        <div class="brand-copy"><strong>eNSP Bridge</strong><small>虚拟化工作台</small></div>
+      </div>
+      <div class="prototype-badge">DESKTOP CONSOLE <span>8.0</span></div>
+      <nav class="navigation" aria-label="主导航">
+        <p class="nav-label">工作空间</p>
+        <button class="nav-item active" data-page="dashboard" aria-current="page"><svg><use href="#i-grid"/></svg><span>状态总览</span><i></i></button>
+        <button class="nav-item" data-page="ensp"><svg><use href="#i-cube"/></svg><span>eNSP 兼容层</span><i></i></button>
+        <button class="nav-item" data-page="hcl"><svg><use href="#i-switch"/></svg><span>HCL / eNSP</span><i></i></button>
+        <p class="nav-label nav-label-second">系统</p>
+        <button class="nav-item" data-page="settings"><svg><use href="#i-settings"/></svg><span>环境设置</span><i></i></button>
+      </nav>
+      <div class="sidebar-bottom">
+        <div class="safety-note"><svg><use href="#i-shield"/></svg><div><strong>可逆操作设计</strong><span>自动备份 · 完整回滚</span></div></div>
+        <div class="sidebar-meta"><span>eNSP Bridge Tool</span><span>v7.2</span></div>
+      </div>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <div class="topbar-title"><span>工作空间</span><b>/</b><strong id="breadcrumb">状态总览</strong></div>
+        <div class="topbar-actions"><div class="local-status"><i></i><span>本地环境</span><strong>已连接</strong></div></div>
+      </header>
+
+      <main class="main-content">
+        <section class="page active" id="page-dashboard">
+          <div class="page-heading">
+            <div><p class="eyebrow">VIRTUALIZATION OVERVIEW</p><h1>状态总览</h1><p class="page-description">集中查看 eNSP、HCL 与 VirtualBox 的运行状态。</p></div>
+            <button class="button button-secondary" id="refresh-dashboard"><svg><use href="#i-refresh"/></svg><span>刷新状态</span></button>
+          </div>
+
+          <div class="engine-banner">
+            <div class="engine-icon"><svg><use href="#i-cube"/></svg></div>
+            <div class="engine-copy"><div><span class="subtle-label">当前虚拟化引擎</span><span class="status-pill status-success" id="engine-status"><i></i>正在读取</span></div><h2 id="engine-title">正在连接 VirtualBox</h2><p id="engine-description">正在读取本机 COM 与兼容层状态。</p></div>
+            <div class="engine-meta"><div><span>桌面宿主</span><strong>WebView2</strong></div><div><span>最后检查</span><strong id="last-check">等待刷新</strong></div></div>
+          </div>
+
+          <div class="metric-grid">
+            <article class="metric-card"><div class="metric-top"><span>COM 模式</span><i class="metric-dot amber"></i></div><strong id="metric-com-value">读取中</strong><p id="metric-com-detail">正在连接本机 COM</p><div class="metric-foot"><span class="trend neutral">64 位视图</span><span>CLSID</span></div></article>
+            <article class="metric-card"><div class="metric-top"><span>eNSP 兼容层</span><i class="metric-dot green"></i></div><strong id="metric-ensp-value">读取中</strong><p id="metric-ensp-detail">正在检查 VBox52.dll</p><div class="metric-foot"><span class="trend positive">哈希匹配</span><span>32 位视图</span></div></article>
+            <article class="metric-card"><div class="metric-top"><span>eNSP 服务</span><i class="metric-dot slate"></i></div><strong id="metric-mumu-value">读取中</strong><p id="metric-mumu-detail">MuMuRemoteService</p><div class="metric-foot"><span class="trend neutral">避免冲突</span><span>服务状态</span></div></article>
+            <article class="metric-card"><div class="metric-top"><span>HCL 环境</span><i class="metric-dot cyan"></i></div><strong id="metric-hcl-value">读取中</strong><p id="metric-hcl-detail">正在检查 HCL 目录</p><div class="metric-foot"><span class="trend positive">Shim 可用</span><span>API 适配</span></div></article>
+          </div>
+
+          <div class="dashboard-grid">
+            <article class="panel compatibility-panel">
+              <div class="panel-heading"><div><h3>兼容性概览</h3><p>核心组件与适配状态</p></div><span class="small-badge">4 项检查</span></div>
+              <div class="compatibility-list">
+                <div class="compatibility-row"><div class="component-icon blue"><svg><use href="#i-cube"/></svg></div><div class="component-copy"><strong>eNSP 核心兼容层</strong><span>5.2 ABI → VirtualBox 7.2</span></div><span class="version-label">x86</span><span class="row-status success" id="compatibility-ensp-status"><i></i>读取中</span></div>
+                <div class="compatibility-row"><div class="component-icon violet"><svg><use href="#i-switch"/></svg></div><div class="component-copy"><strong>HCL API 适配</strong><span>CreateMachine · AudioSettings</span></div><span class="version-label">gen_py</span><span class="row-status success"><i></i>已内置</span></div>
+                <div class="compatibility-row"><div class="component-icon cyan"><svg><use href="#i-shield"/></svg></div><div class="component-copy"><strong>虚拟机引擎</strong><span>Oracle VM VirtualBox</span></div><span class="version-label" id="compatibility-vbox-version">读取中</span><span class="row-status success" id="compatibility-vbox-status"><i></i>读取中</span></div>
+                <div class="compatibility-row"><div class="component-icon amber"><svg><use href="#i-info"/></svg></div><div class="component-copy"><strong>设备验收范围</strong><span>其他设备类型仍需独立回归</span></div><span class="version-label">AR / S6850</span><span class="row-status warning"><i></i>部分验证</span></div>
+              </div>
+            </article>
+
+            <article class="panel quick-panel">
+              <div class="panel-heading"><div><h3>快速操作</h3><p>常用工作流入口</p></div></div>
+              <button class="quick-action" data-go="ensp"><span class="quick-icon"><svg><use href="#i-cube"/></svg></span><span><strong>管理 eNSP</strong><small>部署、检查或回滚兼容层</small></span><svg class="arrow"><use href="#i-arrow"/></svg></button>
+              <button class="quick-action" data-go="hcl"><span class="quick-icon violet"><svg><use href="#i-play"/></svg></span><span><strong>启动 HCL</strong><small>切换 Oracle 并应用 API Shim</small></span><svg class="arrow"><use href="#i-arrow"/></svg></button>
+              <button class="quick-action" data-action="check"><span class="quick-icon cyan"><svg><use href="#i-search"/></svg></span><span><strong>运行只读检查</strong><small>不修改文件、注册表或 VM</small></span><svg class="arrow"><use href="#i-arrow"/></svg></button>
+              <div class="quick-footer"><svg><use href="#i-clock"/></svg><span>只读检查不会修改系统或虚拟机配置</span></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="page" id="page-ensp">
+          <div class="page-heading"><div><p class="eyebrow">ENSP COMPATIBILITY</p><h1>eNSP 兼容层</h1><p class="page-description">部署并维护 32 位 VBox52.dll，让经典 eNSP 使用 VirtualBox 7.2。</p></div><div class="ensp-heading-right"><span class="status-pill status-success large" id="ensp-page-status"><i></i>正在检查兼容层</span><span class="refresh-timestamp" id="ensp-refresh-time">等待刷新</span></div></div>
+          <div class="version-strip"><div><span>当前版本</span><strong>VBox 5.2 ABI</strong></div><i></i><div><span>目标引擎</span><strong>VirtualBox 7.2.x</strong></div><i></i><div><span>核心架构</span><strong>x86 COM Shim</strong></div><i></i><div><span>完整性</span><strong class="text-success">SHA-256 已验证</strong></div></div>
+          <div class="section-title"><div><h2>选择操作</h2><p>所有写操作都会先检查环境并创建备份。</p></div></div>
+          <div class="action-card-grid">
+            <article class="action-card featured"><div class="action-card-top"><span class="action-number">01</span><span class="action-icon"><svg><use href="#i-cube"/></svg></span></div><h3>安装 / 重新部署</h3><p>校验环境后部署四个 DLL 位置，并检查基础 VM 注册状态。</p><ul><li><svg><use href="#i-check"/></svg>自动备份现有文件</li><li><svg><use href="#i-check"/></svg>验证 x86 架构与哈希</li></ul><button class="button button-primary full" data-action="install">开始部署<svg><use href="#i-arrow"/></svg></button></article>
+            <article class="action-card"><div class="action-card-top"><span class="action-number">02</span><span class="action-icon cyan"><svg><use href="#i-search"/></svg></span></div><h3>只读环境检查</h3><p>检查版本、PE 架构、核心文件哈希及当前虚拟化状态。</p><ul><li><svg><use href="#i-check"/></svg>不写入注册表</li><li><svg><use href="#i-check"/></svg>不更改 VM 配置</li></ul><button class="button button-secondary full" data-action="check">运行检查<svg><use href="#i-arrow"/></svg></button></article>
+            <article class="action-card danger-card"><div class="action-card-top"><span class="action-number">03</span><span class="action-icon red"><svg><use href="#i-trash"/></svg></span></div><h3>卸载兼容层</h3><p>恢复安装前备份和注册表快照，保留 eNSP、VirtualBox 与 VM。</p><ul><li><svg><use href="#i-check"/></svg>检测外部文件修改</li><li><svg><use href="#i-check"/></svg>失败时保留恢复状态</li></ul><button class="button button-danger-ghost full" data-action="uninstall">卸载并恢复<svg><use href="#i-arrow"/></svg></button></article>
+          </div>
+          <div class="info-banner"><svg><use href="#i-shield"/></svg><div><strong>安全边界</strong><p>卸载不会删除 eNSP、VirtualBox、虚拟磁盘或已注册的虚拟机。若目标文件被其他程序修改，将跳过该文件并提示人工处理。</p></div></div>
+          <div class="info-banner"><svg><use href="#i-info"/></svg><div><strong>参考项目</strong><p>本兼容层基于 <a href="https://github.com/LBXaaa/ensp-vbox-shim" target="_blank" rel="noopener">LBXaaa/ensp-vbox-shim</a> 源码自行审计与构建，原始源码保留在 upstream/ 目录。</p></div></div>
+        </section>
+
+        <section class="page" id="page-hcl">
+          <div class="page-heading"><div><p class="eyebrow">HCL & eNSP WORKSPACE</p><h1>HCL / eNSP 模式</h1><p class="page-description">在同一组 VirtualBox ProgID 之间安全切换，避免 COM 归属冲突。</p></div><button class="button button-secondary" data-action="hclstatus"><svg><use href="#i-refresh"/></svg>查看当前模式</button></div>
+          <div class="conflict-banner"><svg><use href="#i-info"/></svg><div><strong>HCL 与 eNSP 不能同时运行</strong><p>启动 HCL 时会暂停 eNSP 相关连接；关闭 HCL 后自动恢复 eNSP 模式。</p></div><span>互斥运行</span></div>
+          <div class="mode-grid">
+            <article class="mode-card selected" id="oracle-mode-card"><div class="mode-card-head"><span class="mode-logo oracle">VB</span><span class="status-pill status-warning" id="oracle-mode-status"><i></i>读取中</span></div><h2>Oracle VirtualBox</h2><p>用于 HCL 5.10.3 与 eNSP 兼容层</p><div class="mode-details"><div><span>COM 版本</span><strong id="oracle-com-version">读取中</strong></div><div><span>API Shim</span><strong class="text-success">已内置</strong></div></div></article>
+            <div class="mode-connector"><span><svg><use href="#i-switch"/></svg></span><small>安全切换</small></div>
+            <article class="mode-card" id="mumu-mode-card"><div class="mode-card-head"><span class="mode-logo mumu">EN</span><span class="status-pill status-neutral" id="mumu-mode-status"><i></i>读取中</span></div><h2>eNSP VMM</h2><p>用于 eNSP 模拟器与相关服务</p><div class="mode-details"><div><span>COM 版本</span><strong>6.1.36_OSE</strong></div><div><span>远程服务</span><strong id="mumu-service-status">读取中</strong></div></div></article>
+          </div>
+          <div class="mode-switch-bar">
+            <div class="mode-switch-copy"><strong>手动切换 COM 模式</strong><span>不启动 HCL，只切换 VirtualBox ProgID 归属。</span></div>
+            <div class="mode-switch-buttons">
+              <button class="button button-secondary" data-action="oracle"><svg><use href="#i-switch"/></svg>切换到 Oracle</button>
+              <button class="button button-secondary" data-action="mumu"><svg><use href="#i-switch"/></svg>切换到 eNSP</button>
+            </div>
+          </div>
+          <div class="hcl-bottom-grid">
+            <article class="panel launch-panel"><div class="panel-heading"><div><h3>HCL 工作流</h3><p>一键完成模式切换、环境适配与状态恢复</p></div></div><div class="workflow-steps"><div class="workflow-step complete"><span>1</span><div><strong>切换 Oracle 模式</strong><small>恢复 VirtualBox 官方 ProgID</small></div></div><div class="workflow-line"></div><div class="workflow-step"><span>2</span><div><strong>启动 HCL</strong><small>应用 gen_py API 兼容 Shim</small></div></div><div class="workflow-line"></div><div class="workflow-step"><span>3</span><div><strong>恢复 eNSP</strong><small>HCL 退出后自动还原</small></div></div></div><div class="launch-actions"><button class="button button-primary" data-action="hcl"><svg><use href="#i-play"/></svg>启动 HCL</button><button class="button button-secondary" data-action="mumu"><svg><use href="#i-switch"/></svg>恢复 eNSP</button></div></article>
+            <article class="panel path-panel"><div class="panel-heading"><div><h3>当前 HCL 环境</h3><p>便携版运行目录</p></div><span class="small-badge">x64</span></div><div class="path-display"><svg><use href="#i-folder"/></svg><div><strong>HCL 5.10.3</strong><span id="hcl-current-path">正在读取 HCL 目录</span></div></div><div class="path-status"><span id="hcl-path-status"><i></i>正在验证目录</span><span>SimwareClient.exe</span></div><button class="text-button" data-go="settings">在环境设置中更改<svg><use href="#i-arrow"/></svg></button></article>
+          </div>
+        </section>
+
+        <section class="page" id="page-settings">
+          <div class="page-heading"><div><p class="eyebrow">ENVIRONMENT SETTINGS</p><h1>环境设置</h1><p class="page-description">管理本地程序路径与操作偏好，保存后立即生效。</p></div><button class="button button-secondary" id="detect-paths"><svg><use href="#i-search"/></svg>自动检测</button></div>
+          <form id="settings-form">
+            <article class="panel settings-panel"><div class="panel-heading"><div><h3>程序目录</h3><p>指定 eNSP、HCL 与 VirtualBox 的安装位置</p></div><span class="small-badge">本地配置</span></div>
+              <div class="field"><label for="hcl-path"><span>HCL 目录</span><small>包含 SimwareClient.exe 的目录</small></label><div class="input-group"><svg><use href="#i-folder"/></svg><input id="hcl-path" name="hcl" value="E:\HCL_5.10.3\app" spellcheck="false"><button type="button" class="browse-button" data-target="hcl-path">浏览</button></div><span class="field-status valid" id="hcl-path-validation"><svg><use href="#i-check"/></svg>等待本机验证</span></div>
+              <div class="field"><label for="ensp-path"><span>eNSP 目录</span><small>经典版 eNSP 安装根目录</small></label><div class="input-group"><svg><use href="#i-folder"/></svg><input id="ensp-path" name="ensp" value="D:\Program Files\Huawei\eNSP" spellcheck="false"><button type="button" class="browse-button" data-target="ensp-path">浏览</button></div><span class="field-status valid" id="ensp-path-validation"><svg><use href="#i-check"/></svg>等待本机验证</span></div>
+              <div class="field"><label for="vbox-path"><span>VirtualBox 目录</span><small>包含 VBoxManage.exe 的目录</small></label><div class="input-group"><svg><use href="#i-folder"/></svg><input id="vbox-path" name="vbox" value="D:\Program Files\Oracle\VirtualBox" spellcheck="false"><button type="button" class="browse-button" data-target="vbox-path">浏览</button></div><span class="field-status valid" id="vbox-path-validation"><svg><use href="#i-check"/></svg>等待本机验证</span></div>
+            </article>
+            <article class="panel preference-panel"><div class="panel-heading"><div><h3>操作保障</h3><p>桌面宿主固定启用的安全行为</p></div></div><label class="toggle-row"><span><strong>写操作前显示确认</strong><small>部署、卸载及模式切换前展示影响范围</small></span><input type="checkbox" checked disabled><i class="toggle"></i></label><label class="toggle-row"><span><strong>退出 HCL 后恢复 eNSP</strong><small>由 Use-HCL.ps1 还原 gen_py 缓存和 ProgID</small></span><input type="checkbox" checked disabled><i class="toggle"></i></label></article>
+            <div class="settings-footer"><div><svg><use href="#i-info"/></svg><span>配置仅保存到当前 Windows 用户目录。</span></div><button type="submit" class="button button-primary">保存设置</button></div>
+          </form>
+        </section>
+      </main>
+
+      <section class="task-dock collapsed" id="task-dock" aria-label="任务中心">
+        <div class="task-header"><button class="task-title" id="task-toggle"><span class="task-indicator"><i></i><svg><use href="#i-terminal"/></svg></span><span><strong id="task-title">任务中心</strong><small id="task-subtitle">暂无运行中的任务</small></span></button><div class="task-actions"><span class="task-time" id="task-time"></span><button class="icon-button" id="copy-log" aria-label="复制日志" title="复制日志"><svg><use href="#i-copy"/></svg></button><button class="icon-button" id="collapse-log" aria-label="展开或收起日志"><svg><use href="#i-chevron"/></svg></button></div></div>
+        <div class="task-body"><div class="task-progress"><i></i></div><div id="task-log" class="task-log"><div class="log-row log-muted"><i class="log-ico"></i><span class="log-txt">任务输出将在这里显示。只读检查不修改环境；写操作会先显示确认。</span></div></div></div>
+      </section>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="confirm-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="icon-button modal-close" aria-label="关闭"><svg><use href="#i-close"/></svg></button>
+      <div class="modal-icon" id="modal-icon"><svg><use href="#i-shield"/></svg></div>
+      <p class="eyebrow">CONFIRM OPERATION</p><h2 id="modal-title">确认操作</h2><p id="modal-description"></p>
+      <div class="modal-impact"><strong>本次操作将：</strong><ul id="modal-list"></ul></div>
+      <div class="modal-note"><svg><use href="#i-info"/></svg><span>确认后将调用本机 PowerShell 脚本，详细输出会显示在任务中心。</span></div>
+      <div class="modal-actions"><button class="button button-secondary" id="modal-cancel">取消</button><button class="button button-primary" id="modal-confirm">确认执行</button></div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status"><svg><use href="#i-check"/></svg><span></span></div>
+  <script src="app.js"></script>
+</body>
+</html>

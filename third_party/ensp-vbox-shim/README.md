@@ -1,0 +1,215 @@
+# ensp-vbox-shim
+
+让原版 **华为 eNSP** 直接跑在 **VirtualBox 7.x** 上，底层是真实vbox
+7.2.8 虚拟机引擎，全程不降级组件。
+
+> 本工具开源于 https://github.com/LBXaaa/ensp-vbox-shim
+> 若是付费获得，则为他人倒卖，请到上述地址免费下载。
+
+## 为什么做这个
+
+我在备考广东省职业技能等级认定《信息通信网络运行管理员》中级工，考试要求在
+原版 eNSP 上操作。可我这台机器卡在一对矛盾上：eNSP 依赖的是 VirtualBox
+**5.2**，而我日常离不开 WSL2/Hyper-V——只要开着这些虚拟化组件，VBox 5.2 在
+现代 Windows（Win11、Win10 24H2 及以上）上**根本装不上**；偏偏这些组件我一个
+都关不掉，5.2 这条路就这么堵死了。
+
+网上流传的那些办法——降级 VirtualBox、改注册表、打补丁、换用 eNSP Pro——
+大多要么挑系统版本，要么治标不治本，要么和现有环境冲突，要么干脆难以获取，
+没一个撑得起稳定备考。
+
+于是我写了这套二进制 COM 垫片：让原版 eNSP 直接运行在 VirtualBox 7.x 上，既不
+降级任何组件，也不动本机的 WSL2/Hyper-V——对 eNSP 假装成 5.2，背地里把调用
+翻译给真正的 7.2.8。
+
+![eNSP 的 SW 设备运行在真实的 VirtualBox 7.2.8 上，拓扑连通](docs/images/ensp-running-on-vbox72.png)
+
+## 工作原理
+
+三处改动，让 eNSP 把 7.2 当成 5.2：
+
+1. **`VBox52.dll` 垫片**（放进 `eNSP\tools\`）—— 对外呈现 5.2 形状的
+   `IVirtualBox` vtable，把每个槽位转发到重映射后的 7.2 方法；eNSP 经
+   `GetVBoxInstance()` 或 COM 类厂拿到它。
+2. **版本伪装** —— 注册表和进程内都把版本报成 `5.2.x`，放行 eNSP 的版本闸门
+   （二进制实为 `7.2.8`）。
+3. **`VAR_Plugin.dll` 补丁** —— AR 插件按写死的 5.2 偏移直接调 `IVirtualBox`，
+   一个 28 站点的可逆补丁把偏移重映射到 7.2。
+
+```
+eNSP_Client.exe → eNSP_VBoxServer.exe → VBox52.dll (垫片) → VBoxSVC.exe 7.2.8
+```
+
+细节见 [架构](docs/architecture.md)、[vtable 映射表](docs/vtable-mapping.md)、[组件清单](docs/manifest.md)。
+
+## 关于启动速度
+
+因为本机开着 WSL2/Hyper-V，VirtualBox 7.x 没法直接用 VT-x 硬件加速，只能跑在
+Hyper-V 之上。代价是**网络设备启动明显变
+慢**：单台 AR/AC 等设备从点“开始”到完全起来，**3-5 分钟属正常**，请耐心等待，
+不是卡死。这是开启虚拟化组件后的固有代价，与本垫片无关——纯净（未开虚拟化）的
+机器上会快得多，但那种机器本就能直接装 VBox 5.2，也就用不到这套垫片了。
+
+**需要另行导入镜像的第三方设备，启动耗时可能更长。** CE / CX / NE40E / NE5000E /
+NE9000 这几台跑在完整虚拟机里、各配 4 GB 内存，同时拉起多台时会互相抢 CPU，
+单台十几分钟都属正常。它们的启动进度条还可能长时间不动、甚至看起来卡死——
+**这不代表设备没起来**：可以双击设备试进控制台，或看
+`plugin\<插件>\LogFile\infolog*.txt` 里有没有 `Received run ok msg`。
+**别因为进度条不动就去关 eNSP**，那会把正在引导的设备一并杀掉。
+
+> 注：若把整套环境跑在**虚拟机里**（宿主机 Hyper-V + 客户机 eNSP，三层嵌套），
+> 设备可能显示"正在运行"却出不来进度条。这是嵌套虚拟化的已知限制，解决办法见
+> [installer/README.md 的"已知限制:嵌套虚拟化"](installer/README.md)。物理机不受影响。
+>
+> 注：嵌套环境下若客户机内 **VBox 拿到裸 VT-x、走原生 HM 后端**，AR 设备会一直
+> 卡满屏 `####`、进不到 `<Huawei>`（headless 空转烧满一个核，guest 内核固定崩在
+> `c013e501`）。这不是垫片或 VBox7 兼容问题，也与并发量、差分盘无关——病根是原生
+> VT-x 在二级嵌套下跑 VRP 古董内核的缺陷。解法是让 VBox 改走 NEM 后端（客户机启用
+> WHP 并重启）。诊断链、证据与完整修复步骤见
+> [docs/troubleshooting-error40.md 根因 C](docs/troubleshooting-error40.md)。
+>
+> 注：**Windows Sandbox / WDAG 不受支持**，设备会报"错误 40"。沙箱用 VSMB 共享挂载系统盘，
+> 与 VirtualBox 进程加固对系统 DLL 加载路径的校验冲突，VM 进程在启动阶段即被加固终止——
+> 这是 Windows Sandbox 与 VirtualBox 的固有冲突，非本垫片可修复（原版 VBox 在沙箱内同样起不来）。
+> 请改用普通虚拟机或物理机。
+
+## 仓库结构
+
+| 目录 | 内容 |
+|------|------|
+| [`installer/`](installer/) | **一键整合包**源文件：双击 `安装.bat` 自动检测路径、打补丁、按需注册基础设备 VM 并补建链接克隆快照(打包好的 zip 见 [Releases](../../releases)) |
+| [`src/`](src/)         | 垫片源码：`vbox52_proxy.cpp`、`vbox52_thunks.asm`、`spoof_thunks.cpp`、`imachine_entries.asm`、`vbox52.def` |
+| [`build/`](build/)     | `build.bat`（32 位 MSVC）和我们预编译好的 `VBox52.dll` |
+| [`patches/`](patches/) | `patch_var_plugin.py`、`patch_ngfw_plugin.py` 及插件补丁规格说明 |
+| [`registry/`](registry/) | `.reg` 文件：版本伪装、CLSID 劫持、卸载 |
+| [`docs/`](docs/)       | 架构、vtable 映射、承重件清单 |
+| [`analysis/`](analysis/) | 支撑这一切的逆向脚本与发现 |
+
+## 安装
+
+### **一键整合包(推荐)**
+
+**推荐使用整合包一键安装,前往 [Releases](../../releases) 下载最新的整合包 zip:**
+
+1. 先装好原版 eNSP 和官方 VirtualBox 7.2.x;
+2. 下载并解压整合包 zip;
+3. 双击 **`安装.bat`**,UAC 弹窗点"是";
+4. 它分两步:第 1 步打补丁(自动检测 eNSP/VBox 装在哪、拷垫片 DLL、写版本伪装、按真实
+   路径生成 CLSID 项、给 AR 插件打补丁),第 2 步核对基础设备 VM 的注册状态、按需修复并
+   补建缺失的链接克隆快照。全程双击一次、UAC 只弹一次,无需手动指定路径。
+
+还原:双击 **`卸载.bat`**。只想看当前状态不改动:`install.ps1 -Check`。
+整合包里的脚本与说明就是仓库 [`installer/`](installer/) 目录的内容,详见
+[installer/README.md](installer/README.md)。
+
+#### 基础 VM 的注册与快照(已自动完成,设备无法启动再看)
+
+eNSP 安装时会**自动注册**它的基础设备 VM(`AR_Base`、`WLAN_*_Base`)——这些是 eNSP 拖设备
+时的克隆源。全新安装的机器上注册本就是好的,通常无需任何手动操作。eNSP 的链接克隆还要求每个
+基础盘带一个 `<VM>_Link` 快照作为克隆源,缺了它即便注册成功、克隆阶段也会因找不到快照而失败。
+
+`安装.bat` 的第 2 步会用登录账户身份核对注册与快照,采用**按需操作**:已注册且路径正确的 VM
+保持不动,只在注册项路径失效或指向卸载残留时才注销重注册;`<VM>_Link` 快照仅在**缺失时**补建,
+已存在的绝不改动(它可能正被现有克隆挂载)。所以在好端端的机器上,这一步基本只是"看一眼、不改动"。
+
+需要单独跑 `注册设备.bat` 的两种典型情况:
+
+- 没卸载干净就重装——注册表/`VirtualBox.xml` 里的残留项与新基础盘 UUID 冲突,eNSP 的注册项
+  会**指向失效的旧路径或一块无快照的裸盘**,表现为设备报"错误 40,设备启动失败"。
+- 安装时**右键选了"用其他管理员账户运行"**——注册信息会写进那个管理员的配置而非平时启动
+  eNSP 的登录账户,于是 eNSP 看不到(安装窗口会有黄字提示跳过了注册)。
+
+补救:**用平时启动 eNSP 的账户**(不要用管理员)双击 **`注册设备.bat`**。它会扫描
+`vboxserver\` 下的基础盘,按需重注册并补建缺失的 `<VM>_Link` 快照,把状态恢复正常。这一步
+幂等、可逆,不删除磁盘也不动已有快照;想先看它会做什么而不实际执行,跑 `register_vms.ps1 -Check`。
+
+### 手动安装
+
+想完全掌控每一步,或要自行重新编译,前提:已经装好 **VirtualBox 7.2.x** 和
+**华为 eNSP**;自行编译还需要一套 32 位 MSVC 工具链。注册表和 `Program Files`
+的改动需要管理员权限。
+
+#### 从源码编译垫片(可选)
+
+仓库已附带预编译好的 `build\VBox52.dll`,**不想自己编译可直接跳到下方的安装步骤**。
+想从源码重新构建(例如核对二进制、改动源码后重编),按下面做:
+
+**前提:32 位 MSVC 工具链。** 垫片会被加载进 32 位的 `eNSP_VBoxServer.exe`,所以
+**必须编译成 x86**。装 Visual Studio(2019/2022/2026 皆可)时勾选「使用 C++ 的桌面开发」
+工作负载即可获得 `ml.exe` / `cl.exe` / `link.exe`。无需安装完整 IDE,
+[Build Tools for Visual Studio](https://visualstudio.microsoft.com/downloads/) 同样够用。
+
+```bat
+:: 进入 build 目录,直接运行构建脚本(它会自动调用 vcvars32 配置 32 位环境)
+cd build
+build.bat
+```
+
+构建脚本依次做四件事:用 `ml.exe` 汇编 `vbox52_thunks.asm` 和 `imachine_entries.asm`,
+用 `cl.exe`(`/O2 /GS-`)编译 `vbox52_proxy.cpp` 和 `spoof_thunks.cpp`,再用 `link.exe`
+按 `vbox52.def` 链接成 `build\VBox52.dll`,最后 `dumpbin` 打印导出表确认
+`GetVBoxInstance` / `DelVBoxInstance` 在列。源码全部在 [`src/`](src/)。
+
+> 脚本默认按 VS 2026(v18)Community 找 `vcvars32.bat`。**装的不是这个版本就编辑
+> `build\build.bat` 顶部的 `VCVARS` 路径**,指向自己的
+> `...\VC\Auxiliary\Build\vcvars32.bat`(注意是 `vcvars32`,不是 `vcvars64`——必须 x86)。
+> 找不到该文件时脚本会直接报错并提示修改路径。
+
+编出来的 `build\VBox52.dll` 就是下方安装步骤第 1 步要拷贝的垫片。
+
+#### 安装步骤
+
+```bat
+:: 1. 垫片 —— 编译（见上节，或直接用仓库自带的 build\VBox52.dll）后拷进 eNSP 的全部 4 个加载位置
+build\build.bat
+copy build\VBox52.dll "C:\Program Files\Huawei\eNSP\tools\VBox52.dll"
+copy build\VBox52.dll "C:\Program Files\Huawei\eNSP\vboxserver\VBox52.dll"
+copy build\VBox52.dll "C:\Program Files\Huawei\eNSP\VBox52.dll"
+copy build\VBox52.dll "C:\Program Files\Huawei\eNSP\plugin\ngfw\tools\ngfw\VBox52.dll"
+
+:: 2. 注册表 —— 先版本伪装，再 CLSID 劫持
+reg import registry\01_version_spoof.reg
+reg import registry\02_clsid_inprocserver.reg
+
+:: 3. AR 插件补丁（会先写一份 .bak）
+python patches\patch_var_plugin.py "C:\Program Files\Huawei\eNSP\plugin\ar1000v\VAR_Plugin.dll"
+
+:: 4. x86 VC++ 运行时 —— 拷进 VBox 的 x86\ 子目录（干净机普遍缺，缺则 error 40 / 0x800700C1）
+copy installer\payload\msvcrt-x86\VCRUNTIME140.dll "C:\Program Files\Oracle\VirtualBox\x86\VCRUNTIME140.dll"
+copy installer\payload\msvcrt-x86\MSVCP140.dll     "C:\Program Files\Oracle\VirtualBox\x86\MSVCP140.dll"
+
+:: 5. 授权 —— 给登录用户对 vboxserver\ 的修改权（否则非提权 VBoxHeadless 建不出 Logs\ → error 40）
+icacls "C:\Program Files\Huawei\eNSP\vboxserver" /grant "%USERNAME%:(OI)(CI)M" /T /C /Q
+```
+
+第 1、3 步对应整合包脚本里覆盖全部加载位置与打补丁的动作;第 4、5 步是干净机上的承重步骤(整合包 `安装.bat` 会自动做)。eNSP 安装时已自动注册基础设备 VM(`AR_Base`、`WLAN_*_Base`),全新机器上通常无需额外操作;只有卸载重装等情况下注册可能指向失效路径或缺链接克隆快照,这时用平时启动 eNSP 的账户跑 `installer\register_vms.ps1`(会按需重注册并补建缺失的 `<VM>_Link` 快照),详见 [installer/README.md](installer/README.md)。
+
+> **`NGFW_Plugin.dll` 不在安装范围内。** 2026-09-10 的受控 A/B 实测显示,出厂原版与
+> 22 站点 vtable 补丁版在启动结果上没有任何差异(失败签名相差不到 1 毫秒),且出厂原版
+> 即可正常启动 USG6000V。补丁器仍留在 [`patches/`](patches/) 下备查,但安装器不碰华为的
+> 这个文件 —— 对第三方二进制做字节改写而不带来可验证的收益,不值得冒这个险。
+
+然后启动 eNSP，拉起一台设备即可。要还原，见
+[registry/README.md](registry/README.md) 以及
+`python patches\patch_var_plugin.py --restore …`。
+
+## 仓库包含与不包含的内容
+
+本仓库的核心是原创内容:垫片源码、补丁器、`.reg` 文件,以及由我们自行编译的
+`VBox52.dll`。整合包的 `installer/payload/` 下另附少量配套文件以省去手工步骤——
+其中既有可随应用再分发的通用运行时,也有按本项目补丁规格就地生成的插件文件,
+相关版权归各自所有者。华为 eNSP 与 Oracle VirtualBox 的**主程序**不在其中,需自行安装。
+补丁器对**已安装**的副本执行就地修改,且完全可逆(已通过哈希往返校验)。
+
+## 法务说明
+
+本项目与 **华为 eNSP** 和 **Oracle VM VirtualBox** 互操作,二者均归各自所有者
+所有;本仓库不分发它们的安装程序或主程序。整合包内附带的配套文件版权归各自
+所有者,仅为简化安装而随附。下面的开源许可只覆盖本仓库里我们原创的代码
+(垫片源码、补丁器、注册表文件和分析脚本)。
+
+## 许可证
+
+我们的代码采用 **Mozilla Public License 2.0（MPL-2.0）** —— 见
+[LICENSE](LICENSE)。VirtualBox 与 eNSP 归各自所有者所有;本项目与它们互操作,
+不分发其安装程序或主程序。
