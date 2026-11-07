@@ -1,4 +1,4 @@
-# Build output
+﻿# Build output
 /build/
 /dist/
 **/bin/
@@ -6,6 +6,9 @@
 
 # Local .NET SDK
 /.dotnet/
+
+# Local docs (kept out of the public GitHub repo)
+/docs/
 
 # Local logs, backups, test artifacts
 /logs/
